@@ -54,3 +54,47 @@ test('selecting across sections is possible', (assert) => {
     done();
   });
 });
+
+test('selecting an entire section and deleting removes it', (assert) => {
+  const done = assert.async();
+
+  editor = new Editor(editorElement, {mobiledoc: mobileDocWith2Sections});
+
+  Helpers.dom.selectText('second section', editorElement);
+  Helpers.dom.triggerKeyEvent(document, 'keydown', Helpers.dom.KEY_CODES.DELETE);
+
+  assert.hasElement('p:contains(first section)');
+  assert.hasNoElement('p:contains(second section)', 'deletes second section');
+
+  let textNode = $('p:contains(first section)')[0].childNodes[0];
+  let charOffset = textNode.textContent.length;
+
+  assert.deepEqual(Helpers.dom.getCursorPosition(),
+                   {node: textNode, offset: charOffset});
+
+  done();
+});
+
+test('selecting text in a section and deleting deletes it', (assert) => {
+  const done = assert.async();
+
+  editor = new Editor(editorElement, {mobiledoc: mobileDocWith2Sections});
+
+  Helpers.dom.selectText('cond sec', editorElement);
+  Helpers.dom.triggerKeyEvent(document, 'keydown', Helpers.dom.KEY_CODES.DELETE);
+
+  assert.hasElement('p:contains(first section)', 'first section unchanged');
+  assert.hasNoElement('p:contains(second section)', 'second section is no longer there');
+  assert.hasElement('p:contains(section)', 'second section has correct text');
+
+  let textNode = $('p:contains(section)')[1].childNodes[0];
+  let charOffset = 3; // after the 'c' in "sec"
+
+  assert.deepEqual(Helpers.dom.getCursorPosition(),
+                   {node: textNode, offset: charOffset});
+
+  done();
+});
+
+// test selecting text across sections and deleting joins sections
+// test selecting text across markers deletes intermediary markers and joins outer markers
